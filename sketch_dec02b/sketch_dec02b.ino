@@ -3,11 +3,9 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-// Параметры Wi-Fi
 const char *ssid = "Wi-fi_0800";
 const char *password = "StankinSS2023";
 
-// Параметры MQTT
 const char *mqttServer = "82.146.60.95";
 const int mqttPort = 1883;
 const char *mqttUser = "admin1";
@@ -16,27 +14,21 @@ const char *mqttClientId = "898989";
 const char *mqttTempTopic = "Temp/позитрон";
 const char *mqttHumpTopic = "Hump/позитрон";
 
-// Параметры датчика температуры и влажности (DHT)
-#define DHTPIN 2 // Пин подключения датчика DHT 
-#define DHTTYPE DHT11 // Выберите тип датчика DHT (DHT11 или DHT22) 
+#define DHTPIN 2
+#define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-// Параметры сервомотора
 Servo servoMotor;
-int servoPin = 5; // Пин подключения сервомотора
+int servoPin = 5;
 
-// Параметры датчика движения
-int motionSensorPin = 4; // Пин подключения датчика движения
+int motionSensorPin = 4;
 bool motionDetected = false;
 
-// Параметры светодиода
-int ledPin = 13; // Пин подключения светодиода
+int ledPin = 13;
 
-// Инициализация Wi-Fi и MQTT клиента
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-// Функция для отправки данных по MQTT
 void sendMQTTData(const char *topic, float data) {
   char message[50];
   dtostrf(data, 6, 2, message);
@@ -47,7 +39,6 @@ void sendMQTTData(const char *topic, float data) {
 void setup() {
   Serial.begin(115200);
 
-  // Подключение к Wi-Fi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -60,41 +51,35 @@ void setup() {
 }
 
 void loop() {
-  // Считывание данных с датчика температуры и влажности
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
 
-  // Отправка данных по MQTT
   sendMQTTData(mqttTempTopic, temperature);
   sendMQTTData(mqttHumpTopic, humidity);
 
-  // Проверка условий для управления сервомотором
   if (humidity > 80) {
-    servoMotor.write(90); // Открыть дверцу
+    servoMotor.write(90);
   } else {
-    servoMotor.write(0); // Закрыть дверцу
+    servoMotor.write(0);
   }
 
-  // Проверка движения и температуры для управления светодиодом и сервомотором
   motionDetected = digitalRead(motionSensorPin);
   if (motionDetected && temperature > 30) {
-    digitalWrite(ledPin, HIGH); // Зажечь светодиод
-    servoMotor.write(180); // Повернуть сервомотор
+    digitalWrite(ledPin, HIGH);
+    servoMotor.write(180);
     delay(500);
-    digitalWrite(ledPin, LOW); // Погасить светодиод
-    servoMotor.write(0); // Вернуть сервомотор в исходное положение
+    digitalWrite(ledPin, LOW);
+    servoMotor.write(0);
   }
 
-  delay(1000); // Пауза 1 секунда
+  delay(1000);
 
-  // Подключение к MQTT брокеру, если не подключено
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
 }
 
-// Функция для переподключения к MQTT брокеру
 void reconnect() {
   while (!client.connected()) {
     Serial.println("Attempting MQTT connection...");
