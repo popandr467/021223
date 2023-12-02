@@ -3,32 +3,6 @@ from time import sleep
 from pywebio.output import put_text,put_table,use_scope,span,put_html,put_datatable,datatable_update
 from pywebio import start_server
 
-import paho.mqtt.client as mqtt
-
-def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
-
-    # Subscribing in on_connect() means that if we lose the connection and
-    # reconnect then subscriptions will be renewed.
-    client.subscribe("$SYS/#")
-
-# The callback for when a PUBLISH message is received from the server.
-def on_message(client, userdata, msg):
-    print(msg.topic+" "+str(msg.payload))
-
-client = mqtt.Client()
-client.on_connect = on_connect
-client.on_message = on_message
-print(dir(client))
-help(client.loop_forever)
-client.connect("mqtt.eclipseprojects.io", 1883, 60)
-
-
-
-
-
-
-
 fds1=[
     ['Канал 1','Программа'],
     ['Канал 1','Процент выполнения программы']
